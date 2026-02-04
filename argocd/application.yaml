@@ -5,7 +5,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/banking-devops-project
+    repoURL: https://github.com/suraj222803/banking-project
     targetRevision: main
     path: helm/banking-app
   destination:
