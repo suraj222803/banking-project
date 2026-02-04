@@ -1,0 +1,6 @@
+image:
+  repository: <ECR_REPOSITORY_URL>
+  tag: v1.0.0
+
+activeColor: blue
+replicaCount: 2
