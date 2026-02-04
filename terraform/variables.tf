@@ -11,7 +11,7 @@ variable "vpc_cidr" {
 }
 
 variable "availability_zones" {
-  type        = list(string)
+  type = list(string)
 }
 
 variable "key_name" {
