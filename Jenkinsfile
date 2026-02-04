@@ -2,16 +2,10 @@ pipeline {
   agent any
 
   environment {
-    // Jenkins Credentials
-    AWS_ACCESS_KEY_ID     = credentials('aws_access_key')
-    AWS_SECRET_ACCESS_KEY = credentials('aws_secret_key')
-
-    // AWS & Project Config
     AWS_REGION   = 'us-east-1'
     ACCOUNT_ID   = '039242531369'
     CLUSTER_NAME = 'banking-cluster'
-
-    ECR_REPO = '039242531369.dkr.ecr.us-east-1.amazonaws.com/banking-app'
+    ECR_REPO     = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/banking-app"
   }
 
   options {
@@ -23,36 +17,50 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        dir('terraform') {
-          sh '''
-            terraform --version
-
-            terraform init -reconfigure
-            terraform validate
-            terraform apply -auto-approve
-          '''
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws_access_key'
+        ]]) {
+          dir('terraform') {
+            sh '''
+              terraform --version
+              terraform init -reconfigure
+              terraform validate
+              terraform apply -auto-approve -input=false
+            '''
+          }
         }
       }
     }
 
     stage('Wait for EKS Cluster') {
       steps {
-        sh '''
-          echo "⏳ Waiting for EKS cluster to become ACTIVE..."
-          aws eks wait cluster-active \
-            --name ${CLUSTER_NAME} \
-            --region ${AWS_REGION}
-        '''
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws_access_key'
+        ]]) {
+          sh '''
+            echo "⏳ Waiting for EKS cluster to become ACTIVE..."
+            aws eks wait cluster-active \
+              --name ${CLUSTER_NAME} \
+              --region ${AWS_REGION}
+          '''
+        }
       }
     }
 
     stage('Update kubeconfig') {
       steps {
-        sh '''
-          aws eks update-kubeconfig \
-            --region ${AWS_REGION} \
-            --name ${CLUSTER_NAME}
-        '''
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws_access_key'
+        ]]) {
+          sh '''
+            aws eks update-kubeconfig \
+              --region ${AWS_REGION} \
+              --name ${CLUSTER_NAME}
+          '''
+        }
       }
     }
 
@@ -66,14 +74,19 @@ pipeline {
 
     stage('Login to ECR & Push Image') {
       steps {
-        sh '''
-          aws ecr get-login-password --region ${AWS_REGION} \
-          | docker login --username AWS --password-stdin \
-            ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws_access_key'
+        ]]) {
+          sh '''
+            aws ecr get-login-password --region ${AWS_REGION} \
+            | docker login --username AWS --password-stdin \
+              ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-          docker tag banking-app:latest ${ECR_REPO}:latest
-          docker push ${ECR_REPO}:latest
-        '''
+            docker tag banking-app:latest ${ECR_REPO}:latest
+            docker push ${ECR_REPO}:latest
+          '''
+        }
       }
     }
 
@@ -81,7 +94,6 @@ pipeline {
       steps {
         sh '''
           helm version
-
           helm upgrade --install banking-app helm/banking-app \
             --namespace banking \
             --create-namespace \
