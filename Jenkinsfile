@@ -3,8 +3,8 @@ pipeline {
 
   environment {
     // Jenkins Credentials
-    AWS_ACCESS_KEY_ID     = credentials('aws_access_key')
-    AWS_SECRET_ACCESS_KEY = credentials('aws_secret_key')
+    AWS_ACCESS_KEY_ID     = credentials('Access_key_ID')
+    AWS_SECRET_ACCESS_KEY = credentials('Secret_access_key')
 
     // AWS & Project Config
     AWS_REGION   = 'us-east-1'
