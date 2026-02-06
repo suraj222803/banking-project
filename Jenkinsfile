@@ -8,7 +8,7 @@ pipeline {
 
     // AWS & Project Config
     AWS_REGION   = 'us-east-1'
-    ACCOUNT_ID   = '944380855935'
+    ACCOUNT_ID   = '934424429123'
     CLUSTER_NAME = 'banking-cluster'
 
     ECR_REPO = '944380855935.dkr.ecr.us-east-1.amazonaws.com/banking-app'
