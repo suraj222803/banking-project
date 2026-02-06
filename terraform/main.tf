@@ -11,7 +11,7 @@ module "eks" {
   source          = "./modules/eks"
   cluster_name    = var.cluster_name
   private_subnets = module.vpc.private_subnets
-  # Do NOT pass eks_role_arn
+  eks_role_arn    = var.eks_role_arn
 }
 
 
