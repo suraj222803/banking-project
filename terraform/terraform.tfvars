@@ -17,7 +17,7 @@ private_subnets = [
 
 eks_role_arn = "arn:aws:iam::944380855935:role/my-existing-eks-role"
 
-node_instance_type = "c7i-flex.large"
+node_instance_type = "m7i-flex.large"
 node_count         = 2
 key_name           = "project-key"
 node_ami_id        = "ami-0b6c6ebed2801a5cb"
