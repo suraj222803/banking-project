@@ -13,3 +13,7 @@ output "private_subnet_ids" {
 output "default_security_group_id" {
   value = aws_vpc.main.default_security_group_id
 }
+
+output "private_subnets" {
+  value       = aws_subnet.private[*].id
+}
