@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-app-blue
+  labels:
+    app: banking
+    version: blue
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: banking
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: banking
+        version: blue
+    spec:
+      serviceAccountName: banking-sa
+      containers:
+      - name: banking-container
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: SECRET_NAME
+          value: "banking/app/credentials"
