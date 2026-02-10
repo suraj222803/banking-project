@@ -39,7 +39,7 @@ variable "ami_id" {
 
 variable "desired_size" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "min_size" {
@@ -49,7 +49,7 @@ variable "min_size" {
 
 variable "max_size" {
   type    = number
-  default = 3
+  default = 1
 }
 
 variable "ssh_key_name" {
