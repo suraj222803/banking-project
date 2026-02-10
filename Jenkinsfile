@@ -13,6 +13,11 @@ pipeline {
 
     ECR_REPO = '934424429123.dkr.ecr.us-east-1.amazonaws.com/banking-app'
   }
+    IMAGE_TAG    = "${BUILD_NUMBER}"
+
+    // Terraform
+    TF_IN_AUTOMATION = "true"
+  }
 
   options {
     timestamps()
@@ -21,72 +26,109 @@ pipeline {
 
   stages {
 
-    stage('Terraform Init & Apply') {
+    /* =========================
+       1️⃣ Checkout Source
+       ========================= */
+    stage('Checkout Code') {
+      steps {
+        checkout scm
+      }
+    }
+
+    /* =========================
+       2️⃣ Terraform Init
+       ========================= */
+    stage('Terraform Init') {
       steps {
         dir('terraform') {
           sh '''
-            terraform --version
-
             terraform init -reconfigure
+          '''
+        }
+      }
+    }
+
+    /* =========================
+       3️⃣ Terraform Validate
+       ========================= */
+    stage('Terraform Validate') {
+      steps {
+        dir('terraform') {
+          sh '''
             terraform validate
+          '''
+        }
+      }
+    }
+
+    /* =========================
+       4️⃣ Terraform Apply
+       ========================= */
+    stage('Terraform Apply') {
+      steps {
+        dir('terraform') {
+          sh '''
             terraform apply -auto-approve
           '''
         }
       }
     }
 
-    stage('Wait for EKS Cluster') {
-      steps {
-        sh '''
-          echo "⏳ Waiting for EKS cluster to become ACTIVE..."
-          aws eks wait cluster-active \
-            --name ${CLUSTER_NAME} \
-            --region ${AWS_REGION}
-        '''
-      }
-    }
-
-    stage('Update kubeconfig') {
+    /* =========================
+       5️⃣ Configure kubectl
+       ========================= */
+    stage('Configure kubectl') {
       steps {
         sh '''
           aws eks update-kubeconfig \
-            --region ${AWS_REGION} \
+            --region ${AWS_DEFAULT_REGION} \
             --name ${CLUSTER_NAME}
         '''
       }
     }
 
+    /* =========================
+       6️⃣ Build Docker Image
+       ========================= */
     stage('Build Docker Image') {
       steps {
         sh '''
-          docker build -t banking-app:latest .
+          docker build -t ${ECR_REPO}:${IMAGE_TAG} .
         '''
       }
     }
 
-    stage('Login to ECR & Push Image') {
+    /* =========================
+       7️⃣ Push Image to ECR
+       ========================= */
+    stage('Push Image to ECR') {
       steps {
         sh '''
-          aws ecr get-login-password --region ${AWS_REGION} \
-          | docker login --username AWS --password-stdin \
-            ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          aws ecr get-login-password --region ${AWS_DEFAULT_REGION} \
+          | docker login \
+            --username AWS \
+            --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-          docker tag banking-app:latest ${ECR_REPO}:latest
-          docker push ${ECR_REPO}:latest
+          docker tag ${ECR_REPO}:${IMAGE_TAG} \
+            ${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
+
+          docker push \
+            ${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
         '''
       }
     }
 
-    stage('Deploy via Helm') {
+    /* =========================
+       8️⃣ Deploy to EKS (Helm)
+       ========================= */
+    stage('Deploy to EKS') {
       steps {
         sh '''
-          helm version
-
           helm upgrade --install banking-app helm/banking-app \
             --namespace banking \
             --create-namespace \
-            --set image.repository=${ECR_REPO} \
-            --set image.tag=latest
+            --set image.repository=${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO} \
+            --set image.tag=${IMAGE_TAG}
         '''
       }
     }
@@ -97,7 +139,7 @@ pipeline {
       echo '✅ Banking application deployed successfully'
     }
     failure {
-      echo '❌ Pipeline failed — check Jenkins logs'
+      echo '❌ Pipeline failed — check logs'
     }
     always {
       cleanWs()
