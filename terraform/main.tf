@@ -18,11 +18,11 @@ module "eks" {
 
   vpc_id                   = module.vpc.vpc_id
   public_subnets            = module.vpc.public_subnet_ids
-  private_subnets           = module.vpc.private_subnets
   cluster_name              = var.cluster_name
+  private_subnets           = module.vpc.private_subnets
   cluster_version           = var.cluster_version
   eks_role_arn              = module.iam.eks_cluster_role_arn
-  node_instance_role_arn    = module.iam.node_role_arn
+  node_role_arn             = module.iam.node_role_arn
   node_instance_types       = var.node_instance_types
   ami_id                    = var.ami_id
   desired_size              = var.desired_size
