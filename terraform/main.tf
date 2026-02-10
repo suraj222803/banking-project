@@ -22,7 +22,7 @@ module "eks" {
   cluster_name              = var.cluster_name
   cluster_version           = var.cluster_version
   eks_role_arn              = module.iam.eks_cluster_role_arn
-  node_role_arn             = module.iam.node_role_arn
+  node_instance_role_arn    = module.iam.node_role_arn
   node_instance_types       = var.node_instance_types
   ami_id                    = var.ami_id
   desired_size              = var.desired_size
