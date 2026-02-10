@@ -13,3 +13,7 @@ variable "private_subnets" {
 variable "availability_zones" {
   type = list(string)
 }
+
+variable "vpc_name" {
+  type = string
+}
