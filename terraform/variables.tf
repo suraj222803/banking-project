@@ -1,5 +1,6 @@
 variable "aws_region" {
   type    = string
+  default = "us-east-1"
 }
 
 variable "vpc_cidr" {
@@ -16,7 +17,7 @@ variable "private_subnets" {
 
 variable "ssh_key_name" {
   type = string
-  default = "project-key"  
+  default = "ishika"  # replace with your actual keypair
 }
 
 variable "cluster_name" {
@@ -25,11 +26,17 @@ variable "cluster_name" {
 
 variable "cluster_version" {
   type    = string
+  default = "1.29"
 }
 
 variable "node_instance_types" {
   type    = list(string)
-  default = ["t3.medium"]
+  default = ["t3.micro"]
+}
+
+variable "ami_id" {
+  type    = list(string)
+  default = ["ami-0b6c6ebed2801a5cb"]
 }
 
 variable "desired_size" {
