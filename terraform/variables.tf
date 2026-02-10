@@ -3,6 +3,11 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
+}
+
 variable "vpc_cidr" {
   type = string
 }
