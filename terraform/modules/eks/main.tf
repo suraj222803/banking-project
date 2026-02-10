@@ -16,10 +16,10 @@ resource "aws_eks_cluster" "eks_cluster" {
 # EKS Node Group
 
 resource "aws_eks_node_group" "node_group" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
+  cluster_name    = var.cluster_name
   node_group_name = "${var.cluster_name}-node-group"
-  node_role_arn   = var.node_instance_role_arn
-  subnet_ids      = var.private_subnets
+  node_role_arn  = var.node_role_arn
+  subnet_ids     = var.private_subnets
 
   instance_types = ["t3.micro"]
   ami_type       = "AL2_x86_64"
@@ -32,9 +32,7 @@ resource "aws_eks_node_group" "node_group" {
 
   capacity_type = "ON_DEMAND"
 
-  depends_on = [
-    aws_eks_cluster.this
-  ]
+  
   tags = {
     Name = "${var.cluster_name}-node-group"
   }
