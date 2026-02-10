@@ -34,5 +34,5 @@ module "eks" {
 
 module "ecr" {
   source = "./modules/ecr"
-  ecr_repo_name = var.ecr_repo_name
+  repo_name = var.ecr_repo_name
 }
