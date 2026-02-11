@@ -22,7 +22,7 @@ variable "private_subnets" {
 
 variable "ssh_key_name" {
   type = string
-  default = "ishika"  # replace with your actual keypair
+  default = "suraj"  # replace with your actual keypair
 }
 
 variable "cluster_name" {
